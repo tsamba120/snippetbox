@@ -11,9 +11,20 @@ import (
 // Handler (aka controller) for home endpoint
 func home(w http.ResponseWriter, r *http.Request) {
 
-	// Use ParseFiles() to read template file into template set. + error handling
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Use ParseFiles() to read template files into template set. + error handling
 	// File path must be relative to CWD or an absolute path
-	ts, err := template.ParseFiles("./ui/html/home.page.tmpl")
+	files := []string{
+		"./ui/html/home.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
+	}
+
+	ts, err := template.ParseFiles(files...) // look into variadic functions
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "Internal Server Error", 505)
