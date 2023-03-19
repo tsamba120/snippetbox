@@ -1,0 +1,9 @@
+docker run --name snippetbox_mysql 
+    -e MYSQL_ROOT_PASSWORD=1234 
+    -e MYSQL_DATABASE=snippetbox 
+    -d 
+    -p 3306:3306 
+    mysql
+
+docker exec -it snippetbox -uroot -p1234
+
