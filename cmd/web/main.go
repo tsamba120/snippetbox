@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/tsamba120/snippetbox/pkg/models/mysql"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -14,13 +16,14 @@ import (
 type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
+	snippets *mysql.SnippetModel
 }
 
 func main() {
 	// network address
 	addr := flag.String("addr", ":4000", "HTTP network address")
+	// db conn string
 	dsn := flag.String("dsn", "web:1234@tcp(localhost:3306)/snippetbox?parseTime=true", "MySQL data source name")
-	// dsn := flag.String("dsn", "root:password@tcp(127.0.0.1:3306)/test", "MySQL data source name")
 
 	flag.Parse()
 
@@ -28,17 +31,18 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	app := application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
-	}
-
 	db, err := openDB(*dsn)
 	if err != nil {
 		errorLog.Fatal(err)
 	}
 
 	defer db.Close()
+
+	app := application{
+		errorLog: errorLog,
+		infoLog:  infoLog,
+		snippets: &mysql.SnippetModel{DB: db},
+	}
 
 	// instantiate a new http.Server struct but attached out custom error logger
 	srv := &http.Server{

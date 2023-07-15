@@ -43,4 +43,5 @@ DATE_ADD(UTC_TIMESTAMP(), INTERVAL 7 DAY)
 CREATE USER 'web'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON snippetbox.* TO 'web'@'%';
 -- Important: Make sure to swap 'pass' with a password of your own choosing. 
-ALTER USER 'web'@'%' IDENTIFIED BY '1234';
+-- ALTER USER 'web'@'%' IDENTIFIED BY '1234';
+ALTER USER 'web'@'localhost' IDENTIFIED BY '1234';
