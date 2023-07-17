@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -11,6 +10,8 @@ import (
 )
 
 // Handler (aka controller) for home endpoint
+// NOTE: know difference between pointer receivers vs value receivers
+// when implementing methods on a type
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/" {
@@ -23,29 +24,14 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 
-	for _, snippet := range s {
-		fmt.Fprintf(w, "%v\n", snippet)
-	}
-
-	// Use ParseFiles() to read template files into template set. + error handling
-	// File path must be relative to CWD or an absolute path
-	files := []string{
-		"./ui/html/home.page.tmpl",
-		"./ui/html/base.layout.tmpl",
-		"./ui/html/footer.partial.tmpl",
-	}
-
-	ts, err := template.ParseFiles(files...) // look into variadic functions
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	// Execute method of template set writes template content to the response body.
-	// Last parameter for Execute is for any dynamic data we want to pass in. Nil for now
-	if err = ts.Execute(w, nil); err != nil {
-		app.serverError(w, err)
-	}
+	app.render(
+		w,
+		r,
+		"home.page.tmpl",
+		&templateData{
+			Snippets: s,
+		},
+	)
 }
 
 // handler to show snippet
@@ -65,7 +51,14 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%v", s)
+	app.render(
+		w,
+		r,
+		"show.page.tmpl",
+		&templateData{
+			Snippet: s,
+		},
+	)
 }
 
 // handler to create a snippet
