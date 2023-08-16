@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func (app *application) routes() *http.ServeMux {
+func (app *application) routes() http.Handler {
 	// Use the http.NewServeMux() function to initialize a new ServeMux (aka router)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.home)
@@ -15,5 +15,9 @@ func (app *application) routes() *http.ServeMux {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	return mux
+	// Pass the servemux as the 'next' parameter to the secureHeaders middlware
+	// Because secureHeaders is just a function, and the function returns a
+	// http.Handler we don't need to do anything else
+	// Recall that the serveMux is also an http handler object
+	return secureHeaders(mux)
 }
