@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/bmizerany/pat"
 	"github.com/justinas/alice"
 )
 
@@ -11,15 +12,18 @@ func (app *application) routes() http.Handler {
 	// which will be used for every request
 	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
-	// Use the http.NewServeMux() function to initialize a new ServeMux (aka router)
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet", app.showSnippet)
-	mux.HandleFunc("/snippet/create", app.createSnippet)
+	// Make sure to register exact matches to endpoints first, before any wildcards
+	// Note we are now able to use semantic urls
+	// Instead of query strings, we'll use a full, descriptive path to the resource
+	mux := pat.New()
+	mux.Get("/", http.HandlerFunc(app.home))
+	mux.Get("/snippet/create", http.HandlerFunc(app.createSnippetForm))
+	mux.Post("/snippet/create", http.HandlerFunc(app.createSnippet))
+	mux.Get("/snippet/:id", http.HandlerFunc(app.showSnippet))
 
 	// create file server that serves files out of "./ui/static/ directory"
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+	mux.Get("/static/", http.StripPrefix("/static", fileServer))
 
 	// Recall that the serveMux is also an http handler object
 

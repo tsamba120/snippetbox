@@ -14,10 +14,6 @@ import (
 // when implementing methods on a type
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
 	s, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, err)
@@ -35,7 +31,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 // handler to show snippet
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	// Pat doesn't strip the colon from the named capture key, so we need to
+	// get the value of ":id" from the query string instead of "id".
+	id, err := strconv.Atoi(r.URL.Query().Get(":id"))
 	if err != nil || id < 1 {
 		app.notFound(w)
 	}
@@ -60,14 +58,13 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
+// New createSnippetForm handler, which for now returns a placeholder reponse
+func (app *application) createSnippetForm(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Create a new snippet..."))
+}
+
 // handler to create a snippet
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.Header().Set("Allow", http.MethodPost)
-		app.clientError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
 	// for now we'll create some variables holding mock data. remove later on
 	title := "O snail"
 	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n-Kobayashi Issa"
@@ -81,5 +78,5 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// redirect the user to the relevant page for the snippet
-	http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
 }
