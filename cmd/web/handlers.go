@@ -60,15 +60,19 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 
 // New createSnippetForm handler, which for now returns a placeholder reponse
 func (app *application) createSnippetForm(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create a new snippet..."))
+	app.render(w, r, "create.page.tmpl", nil)
 }
 
 // handler to create a snippet
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
-	// for now we'll create some variables holding mock data. remove later on
-	title := "O snail"
-	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n-Kobayashi Issa"
-	expires := "7"
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+	}
+
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+	expires := r.PostForm.Get("expires")
 
 	// pass data to SnippetModel.Insert() method, receiving the ID back
 	id, err := app.snippets.Insert(title, content, expires)
