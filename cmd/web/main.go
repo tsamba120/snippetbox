@@ -25,7 +25,8 @@ func main() {
 	// network address
 	addr := flag.String("addr", ":4000", "HTTP network address")
 	// db conn string
-	dsn := flag.String("dsn", "web:1234@tcp(localhost:3306)/snippetbox?parseTime=true", "MySQL data source name")
+	// must be either localhost or name of container or DNS of database service
+	dsn := flag.String("dsn", "web:1234@tcp(go-mysql:3306)/snippetbox?parseTime=true", "MySQL data source name")
 
 	flag.Parse()
 
