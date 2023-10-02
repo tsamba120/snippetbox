@@ -84,7 +84,7 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 		errors["title"] = "This field cannot be blank"
 	} else if utf8.RuneCountInString(title) > 100 {
 		// RuneCount gets number of chars, len() gets number of bytes
-		errors["title"] = "This fied is too long (maximum is 100 characters)"
+		errors["title"] = "This field is too long (maximum is 100 characters)"
 	}
 
 	// validate content field
@@ -99,9 +99,15 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 		errors["expires"] = "This field is invalid"
 	}
 
-	// if there are any errors, dump them in plain text HTTP response and return
+	// if there are any errors, re-display the create.page.tmpl template
+	// passing in the validation errors and previously submitted r.PostForm data
 	if len(errors) > 0 {
-		fmt.Fprint(w, errors)
+		app.render(
+			w, r, "create.page.tmpl", &templateData{
+				FormErrors: errors,
+				FormData:   r.PostForm,
+			},
+		)
 		return
 	}
 
