@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: snippetbox-deployment
+  labels:
+    app: snippetbox
+spec:
+  replicas: 2
+  selector:
+    matchLables:
+      app: snippetbox
+  template:
+    metadata:
+      labels:
+        app: snippetbox
+    spec:
+      containers:
+      - name: snippetbox
+        image: # TODO - build image for Snippetbox
+        ports:
+          containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: snippetbox-service
+spec:
+  type: NodePort
+  selector:
+    app: snippetbox
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30000
