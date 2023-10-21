@@ -7,16 +7,19 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/tsamba120/snippetbox/pkg/models/mysql"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/golangcollege/sessions"
 )
 
 // define an application struct to inject log dependencies into our handlers
 type application struct {
 	errorLog      *log.Logger
 	infoLog       *log.Logger
+	session       *sessions.Session
 	snippets      *mysql.SnippetModel
 	templateCache map[string]*template.Template
 }
@@ -28,6 +31,8 @@ func main() {
 	// must be either localhost or name of container or DNS of database service
 	// dsn := flag.String("dsn", "web:1234@tcp(go-mysql:3306)/snippetbox?parseTime=true", "MySQL data source name")
 	dsn := flag.String("dsn", "web:1234@tcp(localhost:3306)/snippetbox?parseTime=true", "MySQL data source name")
+	// session secret (random key used to encrypt and authenticate session cookies -- 32 bytes long)
+	secret := flag.String("secret", "s6Ndh+pPbnzHbS*+9Pk8qGWhTzbpa@ge", "Secret key")
 
 	flag.Parse()
 
@@ -35,6 +40,7 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	// connect to db
 	db, err := openDB(*dsn)
 	if err != nil {
 		errorLog.Fatal(err)
@@ -47,9 +53,16 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+	// initialize new session manager, passing in secret key
+	// configured to expire every 12 hours
+	session := sessions.New([]byte(*secret))
+	session.Lifetime = 12 * time.Hour
+
+	// create application struct that we inject into server
 	app := application{
 		errorLog:      errorLog,
 		infoLog:       infoLog,
+		session:       session,
 		snippets:      &mysql.SnippetModel{DB: db},
 		templateCache: templateCache,
 	}
