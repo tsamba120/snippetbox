@@ -57,6 +57,7 @@ func main() {
 	// configured to expire every 12 hours
 	session := sessions.New([]byte(*secret))
 	session.Lifetime = 12 * time.Hour
+	session.Secure = true
 
 	// create application struct that we inject into server
 	app := application{
@@ -69,14 +70,21 @@ func main() {
 
 	// instantiate a new http.Server struct but attached out custom error logger
 	srv := &http.Server{
-		Addr:     *addr,
-		Handler:  app.routes(), // call app.routes method
-		ErrorLog: errorLog,
+		Addr:         *addr,
+		Handler:      app.routes(), // call app.routes method
+		ErrorLog:     errorLog,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	// Use http.ListenAndServe() to state a new webserver. Pass in TCP network address to listen on and servemux
 	infoLog.Printf("Starting server on %s\n", *addr)
 	err = srv.ListenAndServe()
+
+	// Optional
+	// Use http.ListenAndServeTLS method to start the HTTPs server. We pass in the paths to the TLS certificate and private key
+	// err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 	errorLog.Fatal(err)
 }
 
